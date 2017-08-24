@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.Practices.ServiceLocation;
+using Microsoft.AspNetCore.Http;
 
 namespace PseudoCQRS.PropertyValueProviders
 {
@@ -7,17 +7,11 @@ namespace PseudoCQRS.PropertyValueProviders
 	{
 		private const string KeyFormat = "{0}:{1}";
 
-		private readonly IHttpContextWrapper _httpContextWrapper;
+		private readonly IHttpContextWrapper _httpContextAccessor;
 
-		public SessionPropertyValueProvider()
-			:this(ServiceLocator.Current.GetInstance<IHttpContextWrapper>())
+		public SessionPropertyValueProvider(IHttpContextWrapper httpContextAccessor )
 		{
-
-		}
-
-		public SessionPropertyValueProvider( IHttpContextWrapper httpContextWrapper )
-		{
-			_httpContextWrapper = httpContextWrapper;
+			_httpContextAccessor = httpContextAccessor;
 		}
 
 		private string GetKey( Type objectType, string propertyName )
@@ -27,17 +21,17 @@ namespace PseudoCQRS.PropertyValueProviders
 
 		public bool HasValue<T>( string key )
 		{
-			return _httpContextWrapper.ContainsSessionItem( GetKey( typeof( T ), key ) );
+			return _httpContextAccessor.ContainsSessionItem( GetKey( typeof( T ), key ) );
 		}
 
 		public object GetValue<T>( string key, Type propertyType )
 		{
-			return ConvertValue( _httpContextWrapper.GetSessionItem(  GetKey( typeof( T ), key ) ).ToString(), propertyType );
+			return ConvertValue( _httpContextAccessor.GetSessionItem(  GetKey( typeof( T ), key ) ).ToString(), propertyType );
 		}
 
 		public void SetValue<T>( string key, object value )
 		{
-			_httpContextWrapper.SetSessionItem( GetKey( typeof( T ), key ) , value.ToString() );
+			_httpContextAccessor.SetSessionItem( GetKey( typeof( T ), key ) , value.ToString() );
 		}
 	}
 }

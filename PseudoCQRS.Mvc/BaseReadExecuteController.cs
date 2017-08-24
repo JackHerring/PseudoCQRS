@@ -1,48 +1,50 @@
 ﻿using System;
 using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
-using System.Web.Mvc;
-using Microsoft.Practices.ServiceLocation;
 using PseudoCQRS.Controllers.ExtensionMethods;
+#if !MVC5
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+#elif MVC5
+using System.Web.Mvc;
+using IActionResult = System.Web.Mvc.ActionResult;
+#endif
 
 namespace PseudoCQRS.Controllers
 {
-	public abstract class BaseReadExecuteController<TViewModel, TArgs, TCommand> : BaseCommandController<TViewModel, TCommand>, IViewPath
+	public abstract class BaseReadExecuteController<TViewModel, TArgs, TCommand> : BaseReadExecuteController<TViewModel, TArgs, TCommand, CommandResult>
 		where TViewModel : class
+		where TCommand : ICommand
 		where TArgs : new()
 	{
-		private readonly IViewModelFactory<TViewModel, TArgs> _viewModelFactory;
+	}
+
+	public abstract class BaseReadExecuteController<TViewModel, TArgs, TCommand, TCommandResult> : BaseCommandController<TViewModel, TCommand, TCommandResult>, IViewPath
+		where TViewModel : class
+		where TCommand : ICommand<TCommandResult>
+		where TCommandResult : CommandResult, new()
+		where TArgs : new()
+	{
+		private IViewModelFactory<TViewModel, TArgs> _viewModelFactory => ControllerDependencyResolver.GetControllerDependency<IViewModelFactory<TViewModel, TArgs>>( this );
 
 		public abstract string ViewPath { get; }
 
-		public override ActionResult OnFailureExecution( TViewModel viewModel, CommandResult commandResult )
+		public override ValueTask<IActionResult> OnFailureExecution( TViewModel viewModel, TCommandResult commandResult )
 		{
-			return View( this.GetView(), viewModel );
+			return new ValueTask<IActionResult>( View( this.GetView(), viewModel ) );
 		}
 
-
-		protected BaseReadExecuteController(
-			ICommandExecutor commandExecutor,
-			IViewModelFactory<TViewModel, TArgs> viewModelFactory )
-			: base( commandExecutor )
+		protected virtual async Task<IActionResult> GetActionResult( TViewModel viewModel, CancellationToken cancellationToken )
 		{
-			_viewModelFactory = viewModelFactory;
+			return await ExecuteCommandAndGetActionResult( viewModel, cancellationToken );
 		}
 
-		protected BaseReadExecuteController()
-			: this(
-				ServiceLocator.Current.GetInstance<ICommandExecutor>(),
-				ServiceLocator.Current.GetInstance<IViewModelFactory<TViewModel, TArgs>>() ) {}
-
-
-		protected virtual ActionResult GetActionResult( TViewModel viewModel )
-		{
-			return ExecuteCommandAndGetActionResult( viewModel );
-		}
-
-
-		[AcceptVerbs( HttpVerbs.Get | HttpVerbs.Head )]
-		public virtual ActionResult Execute()
+		[AcceptVerbs( "GET", "HEAD" )]
+		public virtual IActionResult Execute()
 		{
 			return GetViewResult( GetViewModel() );
 		}
@@ -55,18 +57,22 @@ namespace PseudoCQRS.Controllers
 			}
 			catch ( ArgumentBindingException exception )
 			{
-				throw new HttpException( 404, exception.Message, exception.InnerException );
+				throw new HttpRequestException( exception.Message, exception.InnerException );
 			}
 		}
 
-		[HttpPost]
-		public virtual ActionResult Execute( FormCollection form )
+		[AcceptVerbs( "POST" )]
+		public virtual async Task<IActionResult> Execute( FormCollection form )
 		{
 			var viewModel = GetViewModel();
-			return TryUpdateModel( viewModel ) ? GetActionResult( viewModel ) : GetViewResult( viewModel );
+#if MVCCORE
+			return await TryUpdateModelAsync( viewModel ) ? await GetActionResult( viewModel, RequestAbortedCancellationToken ) : GetViewResult( viewModel );
+#else
+			return TryUpdateModel(viewModel) ? await GetActionResult(viewModel, RequestAbortedCancellationToken) : GetViewResult(viewModel);
+#endif
 		}
 
-		protected virtual ViewResult GetViewResult( TViewModel viewModel )
+		protected virtual IActionResult GetViewResult( TViewModel viewModel )
 		{
 			return View( this.GetView(), viewModel );
 		}

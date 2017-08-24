@@ -1,7 +1,12 @@
-﻿using System.Web;
-using System.Web.Mvc;
-using Microsoft.Practices.ServiceLocation;
+﻿using System.Net.Http;
+using System.Web;
 using PseudoCQRS.Controllers.ExtensionMethods;
+#if !MVC5
+using Microsoft.AspNetCore.Mvc;
+#elif MVC5
+using System.Web.Mvc;
+using IActionResult = System.Web.Mvc.ActionResult;
+#endif
 
 namespace PseudoCQRS.Controllers
 {
@@ -10,19 +15,11 @@ namespace PseudoCQRS.Controllers
 		where TViewModel : class
 		where TArgs : new()
 	{
-		private readonly IViewModelFactory<TViewModel, TArgs> _viewModelFactory;
+		private IViewModelFactory<TViewModel, TArgs> _viewModelFactory => ControllerDependencyResolver.GetControllerDependency<IViewModelFactory<TViewModel, TArgs>>( this );
 
 		public abstract string ViewPath { get; }
-
-		protected BaseReadController( IViewModelFactory<TViewModel, TArgs> viewModelFactory )
-		{
-			_viewModelFactory = viewModelFactory;
-		}
-
-		public BaseReadController()
-			: this( ServiceLocator.Current.GetInstance<IViewModelFactory<TViewModel, TArgs>>() ) {}
-
-		public virtual ActionResult Execute()
+		
+		public virtual IActionResult Execute()
 		{
 			return GetActionResult( GetViewModel() );
 		}
@@ -35,7 +32,7 @@ namespace PseudoCQRS.Controllers
 			}
 			catch ( ArgumentBindingException exception )
 			{
-				throw new HttpException( 404, exception.Message, exception.InnerException );
+				throw new HttpRequestException( exception.Message, exception.InnerException );
 			}
 		}
 
@@ -44,7 +41,7 @@ namespace PseudoCQRS.Controllers
 			return View( this.GetView(), viewModel );
 		}
 
-		protected virtual ActionResult GetActionResult( TViewModel viewModel )
+		protected virtual IActionResult GetActionResult( TViewModel viewModel )
 		{
 			return GetViewResult( viewModel );
 		}

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text;
+using Microsoft.AspNetCore.Http;
 
 namespace PseudoCQRS.Controllers
 {
@@ -33,20 +35,16 @@ namespace PseudoCQRS.Controllers
 			return GetMessage( SuccessKey );
 		}
 
-		private void SetMessage( string key, string message )
-		{
-			_httpContextWrapper.SetSessionItem( key, message );
-		}
+		private void SetMessage( string key, string message ) => _httpContextWrapper.SetSessionItem( key, message );
 
 		private string GetMessage( string key )
 		{
-			var sessionItem = _httpContextWrapper.GetSessionItem( key );
-			string retVal = String.Empty;
-			if ( sessionItem != null )
-				retVal = sessionItem.ToString();
+			if ( !_httpContextWrapper.ContainsSessionItem( key ) )
+				return string.Empty;
 
+			var sessionItem = _httpContextWrapper.GetSessionItem( key );
 			_httpContextWrapper.SessionRemoveItem( key );
-			return retVal;
+			return sessionItem;
 		}
 	}
 }

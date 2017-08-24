@@ -1,11 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Practices.ServiceLocation;
+using System.Reflection;
 
 namespace PseudoCQRS.Checkers
 {
 	public class CheckersFinder : ICheckersFinder
 	{
+		private readonly IServiceProvider _serviceProvider;
+
+		public CheckersFinder( IServiceProvider serviceProvider )
+		{
+			_serviceProvider = serviceProvider;
+		}
+
 		private class CheckersFinderResult<TAttribute, TChecker>
 		{
 			public TAttribute Attribute { get; set; }
@@ -13,12 +21,13 @@ namespace PseudoCQRS.Checkers
 		}
 
 		private IEnumerable<CheckersFinderResult<TAttribute, TChecker>> GetCheckersImplmenting<TAttribute, TChecker>( object instance )
+			where TAttribute : Attribute
 		{
 			var result = new List<CheckersFinderResult<TAttribute, TChecker>>();
 
-			foreach ( var attrib in instance.GetType().GetCustomAttributes( typeof( TAttribute ), true ) )
+			foreach ( var attrib in instance.GetType().GetTypeInfo().GetCustomAttributes( typeof( TAttribute ), true ) )
 			{
-				var checker = ServiceLocator.Current.GetInstance( ( (BaseCheckAttribute)attrib ).CheckerType );
+				var checker = _serviceProvider.GetService( ( (BaseCheckAttribute)attrib ).CheckerType );
 				result.Add( new CheckersFinderResult<TAttribute, TChecker>
 				{
 					Checker = (TChecker)checker,

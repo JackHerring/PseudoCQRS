@@ -1,7 +1,10 @@
-﻿namespace PseudoCQRS.Controllers
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace PseudoCQRS.Controllers
 {
 	public interface ICommandExecutor
 	{
-		CommandResult ExecuteCommand<TCommand>( TCommand command );
+		Task<TCommandResult> ExecuteCommandAsync<TCommand, TCommandResult>( TCommand command, CancellationToken cancellationToken = default(CancellationToken)) where TCommand : ICommand<TCommandResult> where TCommandResult : CommandResult, new();
 	}
 }

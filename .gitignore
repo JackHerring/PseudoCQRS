@@ -228,3 +228,4 @@ UpgradeLog*.XML
 
 /packages/
 **/.vs/*
+PseudoCQRS.7.0.0-beta5.zip

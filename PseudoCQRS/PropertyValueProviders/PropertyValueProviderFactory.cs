@@ -1,17 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PseudoCQRS.PropertyValueProviders
 {
 	public class PropertyValueProviderFactory : IPropertyValueProviderFactory
 	{
-		private readonly List<IPropertyValueProvider> _propertyValueProviders = new List<IPropertyValueProvider>()
+		private readonly IServiceProvider _serviceProvider;
+
+		private readonly List<IPropertyValueProvider> _propertyValueProviders;
+
+		public PropertyValueProviderFactory( IServiceProvider serviceProvider )
 		{
-			new CookiePropertyValueProvider(),
-			new SessionPropertyValueProvider(),
-			new RouteDataPropertyValueProvider(),
-			new QueryStringPropertyValueProvider(),
-			new FormDataPropertyValueProvider()
-		};
+			_serviceProvider = serviceProvider;
+			var httpContext = _serviceProvider.GetService( typeof(IHttpContextWrapper)) as IHttpContextWrapper;
+			_propertyValueProviders = new List<IPropertyValueProvider>()
+			{
+				new CookiePropertyValueProvider( httpContext ),
+				new SessionPropertyValueProvider( httpContext ),
+				new RouteDataPropertyValueProvider( httpContext ),
+				new QueryStringPropertyValueProvider( httpContext ),
+				new FormDataPropertyValueProvider( httpContext )
+			};
+		}
 
 		public IEnumerable<IPropertyValueProvider> GetPropertyValueProviders()
 		{
@@ -24,10 +34,10 @@ namespace PseudoCQRS.PropertyValueProviders
 			switch ( location )
 			{
 				case PersistanceLocation.Cookie:
-					result = new CookiePropertyValueProvider();
+					result = new CookiePropertyValueProvider(_serviceProvider.GetService(typeof(IHttpContextWrapper)) as IHttpContextWrapper );
 					break;
 				case PersistanceLocation.Session:
-					result = new SessionPropertyValueProvider();
+					result = new SessionPropertyValueProvider(_serviceProvider.GetService(typeof(IHttpContextWrapper)) as IHttpContextWrapper );
 					break;
 			}
 

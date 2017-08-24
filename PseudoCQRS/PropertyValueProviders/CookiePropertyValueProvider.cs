@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Practices.ServiceLocation;
 
 namespace PseudoCQRS.PropertyValueProviders
 {
@@ -8,12 +7,6 @@ namespace PseudoCQRS.PropertyValueProviders
 		IPersistablePropertyValueProvider
 	{
 		private readonly IHttpContextWrapper _httpContextWrapper;
-
-		public CookiePropertyValueProvider()
-			: this( ServiceLocator.Current.GetInstance<IHttpContextWrapper>() )
-		{
-			
-		}
 
 		public CookiePropertyValueProvider( IHttpContextWrapper httpContextWrapper )
 		{

@@ -1,21 +1,33 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-
-<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd" >
-	<metadata>
-		<id>PseudoCQRS</id>
-		<version>6.0.0</version>
-		<title>Pseudo CQRS</title>
-		<authors>Liquid Thinking</authors>
-		<projectUrl>https://github.com/LiquidThinking/PseudoCQRS</projectUrl>
-		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<description>CQRS Framework</description>
-		<releaseNotes>Added ILogger in EventPublisher</releaseNotes>
-		<dependencies>
-			<dependency id="CommonServiceLocator" version="1.0"/>
-		</dependencies>
-	</metadata>
-	<files>
-		<file src="PseudoCQRS\bin\Release\PseudoCQRS.dll" target="lib\net40\PseudoCQRS.dll"/>
-		<file src="PseudoCQRS\bin\Release\PseudoCQRS.pdb" target="lib\net40\PseudoCQRS.pdb"/>
-	</files>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+    <metadata>
+        <id>PseudoCQRS</id>
+        <version>7.0.1</version>
+        <title>PseudoCQRS</title>
+        <authors>Liquid Thinking</authors>
+        <owners>Liquid Thinking</owners>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>PseudoCQRS Framework</description>
+        <releaseNotes>Added sync option back in (but deprecated).</releaseNotes>
+        <copyright>Copyright 2017</copyright>
+        <tags>CQRS</tags>
+        <dependencies>
+            <group targetFramework=".NETFramework4.5.1">
+                <dependency id="System.ComponentModel" version="4.3.0" exclude="Build,Analyzers" />
+            </group>
+            <group targetFramework=".NETStandard2.0">
+                <dependency id="System.ComponentModel" version="4.3.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.AspNetCore.Http.Features" version="2.0.0" exclude="Build,Analyzers" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="PseudoCQRS.Analyzers\bin\Release\net461\PseudoCQRS.Analyzers.dll" target="analyzers\dotnet\cs\PseudoCQRS.Analyzers.dll" />
+        <file src="PseudoCQRS\bin\Release\net451\PseudoCQRS.dll" target="lib\net451\PseudoCQRS.dll" />
+        <file src="PseudoCQRS\bin\Release\net451\PseudoCQRS.pdb" target="lib\net451\PseudoCQRS.pdb" />
+        <file src="PseudoCQRS\bin\Release\netstandard2.0\PseudoCQRS.dll" target="lib\netstandard2.0\PseudoCQRS.dll" />
+        <file src="PseudoCQRS\bin\Release\netstandard2.0\PseudoCQRS.pdb" target="lib\netstandard2.0\PseudoCQRS.pdb" />
+        <file src="tools\install.ps1" target="tools\install.ps1" />
+        <file src="tools\uninstall.ps1" target="tools\uninstall.ps1" />
+    </files>
 </package>

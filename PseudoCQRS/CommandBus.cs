@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using PseudoCQRS.Checkers;
+using PseudoCQRS.ExtensionMethods;
 
 namespace PseudoCQRS
 {
@@ -19,15 +23,50 @@ namespace PseudoCQRS
 			_prerequisitesChecker = prerequisitesChecker;
 		}
 
-		public CommandResult Execute<TCommand>( TCommand command )
+		private TCommandResult InternalExecute<TCommand, TCommandResult>( TCommand command )
+			where TCommand : ICommand<TCommandResult>
+			where TCommandResult : CommandResult, new()
 		{
-			var result = new CommandResult
-			{
-				ContainsError = true,
-				Message = String.Format( "Handler not found for command {0}", command.GetType().Name )
-			};
+			var result = CreateDefaultCommandResult<TCommand, TCommandResult>(command);
 
-			var handler = _commandHandlerProvider.GetCommandHandler<TCommand>();
+			var handler = _commandHandlerProvider.GetCommandHandler<TCommand, TCommandResult>();
+
+			if (handler != null)
+			{
+				var hasTransactionAttribute = handler.HasTransactionAttribute();
+
+				if (hasTransactionAttribute)
+					_dbSessionManager.OpenTransaction();
+
+				try
+				{
+					var checkResult = _prerequisitesChecker.Check(command);
+					if ( !checkResult.ContainsError )
+						result = handler.Handle( command );
+					else
+						result.Message = checkResult.Message;
+
+					if (hasTransactionAttribute)
+						_dbSessionManager.CommitTransaction();
+				}
+				catch (Exception)
+				{
+					if (hasTransactionAttribute)
+						_dbSessionManager.RollbackTransaction();
+					throw;
+				}
+			}
+
+			return result;
+		}
+
+		private async Task<TCommandResult> InternalExecuteAsync<TCommand, TCommandResult>( TCommand command, CancellationToken cancellationToken )
+			where TCommand : ICommand<TCommandResult>
+			where TCommandResult : CommandResult, new()
+		{
+			var result = CreateDefaultCommandResult<TCommand, TCommandResult>( command );
+
+			var handler = _commandHandlerProvider.GetAsyncCommandHandler<TCommand, TCommandResult>();
 
 			if ( handler != null )
 			{
@@ -40,7 +79,7 @@ namespace PseudoCQRS
 				{
 					var checkResult = _prerequisitesChecker.Check( command );
 					if ( !checkResult.ContainsError )
-						result = handler.Handle( command );
+						result = await handler.HandleAsync( command, cancellationToken );
 					else
 						result.Message = checkResult.Message;
 
@@ -55,8 +94,42 @@ namespace PseudoCQRS
 				}
 			}
 
-
 			return result;
+		}
+
+		private TCommandResult CreateDefaultCommandResult<TCommand, TCommandResult>( TCommand command ) where TCommand : ICommand<TCommandResult> where TCommandResult : CommandResult, new()
+		{
+			var result = new TCommandResult
+			{
+				ContainsError = true,
+				Message = $"Handler not found for command {command.GetType().Name}"
+			};
+			return result;
+		}
+
+		public Task<TCommandResult> ExecuteAsync<TCommandResult>( ICommand<TCommandResult> command, CancellationToken cancellationToken = default(CancellationToken) )
+			where TCommandResult : CommandResult, new()
+		{
+			return (Task<TCommandResult>)GetType().GetMethod( nameof(InternalExecuteAsync), BindingFlags.NonPublic | BindingFlags.Instance ).MakeGenericMethod( command.GetType(), typeof( TCommandResult ) ).Invoke( this, new object[]
+			{
+				command,
+				cancellationToken
+			} );
+		}
+
+		public TCommandResult Execute<TCommandResult>( ICommand<TCommandResult> command ) where TCommandResult : CommandResult, new()
+		{
+			try
+			{
+				return (TCommandResult)GetType().GetMethod( nameof(InternalExecute), BindingFlags.NonPublic | BindingFlags.Instance ).MakeGenericMethod( command.GetType(), typeof( TCommandResult ) ).Invoke( this, new object[]
+				{
+					command
+				} );
+			}
+			catch ( TargetInvocationException ex )
+			{
+				throw ex.InnerException;
+			}
 		}
 	}
 }

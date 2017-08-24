@@ -1,7 +1,14 @@
 ﻿namespace PseudoCQRS
 {
-	public interface ICommandHandler<TCommand>
+	public interface ICommandHandler<in TCommand> : ICommandHandler<TCommand, CommandResult>
+		where TCommand : ICommand
 	{
-		CommandResult Handle( TCommand command );
+	}
+
+	public interface ICommandHandler<in TCommand, out TCommandResult>
+		where TCommand : ICommand<TCommandResult>
+		where TCommandResult : CommandResult
+	{
+		TCommandResult Handle( TCommand command );
 	}
 }

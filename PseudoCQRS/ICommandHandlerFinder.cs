@@ -1,7 +1,15 @@
-﻿namespace PseudoCQRS
+﻿using System;
+
+namespace PseudoCQRS
 {
 	public interface ICommandHandlerFinder
 	{
-		ICommandHandler<TCommand> FindHandlerForCommand<TCommand>();
+		Type FindHandlerForCommand<TCommand, TCommandResult>()
+			where TCommand : ICommand<TCommandResult>
+			where TCommandResult : CommandResult;
+
+		Type FindAsyncHandlerForCommand<TCommand, TCommandResult>()
+			where TCommand : ICommand<TCommandResult>
+			where TCommandResult : CommandResult;
 	}
 }

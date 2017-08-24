@@ -37,7 +37,7 @@ namespace PseudoCQRS
 			Persist( GetArguments<TArg>() );
 		}
 
-		internal void Persist<TArg>( TArg arguments )
+		public void Persist<TArg>( TArg arguments )
 		{
 			foreach ( var property in typeof( TArg ).GetProperties().Where( x => Attribute.IsDefined( x, typeof( PersistAttribute ) ) ) )
 			{

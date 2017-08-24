@@ -1,135 +1,36 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{02BDB9CB-E298-44B2-9C71-04FF9D9BCD60}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PseudoCQRS.Mvc</RootNamespace>
-    <AssemblyName>PseudoCQRS.Mvc</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Mvc3|AnyCPU'">
-    <OutputPath>bin\Mvc3\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Mvc4|AnyCPU'">
-    <OutputPath>bin\Mvc4\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Mvc5|AnyCPU'">
-    <OutputPath>bin\Mvc5\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-  </PropertyGroup>
-  <Choose>
-    <When Condition="'$(Configuration)|$(Platform)' == 'Mvc5|AnyCPU'">
-      <ItemGroup>
-        <Reference Include="System.Web.Mvc, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-          <Private>True</Private>
-          <HintPath>packages\Microsoft.AspNet.Mvc.5.0.0\lib\net45\System.Web.Mvc.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="'$(Configuration)|$(Platform)' == 'Mvc4|AnyCPU'">
-      <ItemGroup>
-        <Reference Include="System.Web.Mvc">
-          <HintPath>packages\Microsoft.AspNet.Mvc.4.0.40804.0\lib\net40\System.Web.Mvc.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <Reference Include="System.Web.Mvc, Version=3.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-          <SpecificVersion>False</SpecificVersion>
-          <HintPath>packages\Microsoft.AspNet.Mvc.3.0.50813.1\lib\net40\System.Web.Mvc.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-  <ItemGroup>
-    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\CommonServiceLocator.1.0\lib\NET35\Microsoft.Practices.ServiceLocation.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="BaseCommandController.cs" />
-    <Compile Include="BaseExecuteController.cs" />
-    <Compile Include="BaseReadController.cs" />
-    <Compile Include="BaseReadExecuteController.cs" />
-    <Compile Include="DBSessionManagerAttribute.cs" />
-    <Compile Include="ExtensionMethods\ControllerExtensionMethods.cs" />
-    <Compile Include="HttpContextWrapper.cs" />
-    <Compile Include="ImplementationsFinder.cs" />
-    <Compile Include="IViewPath.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ViewHelpers\MessageUtilities.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PseudoCQRS\PseudoCQRS.csproj">
-      <Project>{7fc22cf5-db6d-4d85-a4fa-40915d4dbd3b}</Project>
-      <Name>PseudoCQRS</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+    <Configurations>Debug;Release;MVC5;MvcCore</Configurations>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'!='MVC5'">
+	  <PackageId>PseudoCQRS.Core.Mvc</PackageId>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<VersionPrefix>2.0.0</VersionPrefix>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='MVC5'">
+	  <PackageId>PseudoCQRS.Mvc5</PackageId>
+		<TargetFramework>net451</TargetFramework>
+		<VersionPrefix>7.0.0</VersionPrefix>
+	</PropertyGroup>
+	
+  <ItemGroup Condition="'$(Configuration)'!='MVC5'">
+		<PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)'=='MVC5'">
+		<PackageReference Include="Microsoft.AspNet.Mvc" Version="5.*" />
+		<PackageReference Include="CommonServiceLocator" Version="1.0" />
+		<Reference Include="System.Net.Http" />
+		<Reference Include="System.Web" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.4.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\PseudoCQRS\PseudoCQRS.csproj" />
+	</ItemGroup>
 </Project>

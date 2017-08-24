@@ -1,42 +1,54 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Practices.ServiceLocation;
+using System.Reflection;
+using PseudoCQRS.Helpers;
 
 namespace PseudoCQRS
 {
 	public class CommandHandlerFinder : ICommandHandlerFinder
 	{
-		private readonly IServiceLocator _serviceLocator;
 		private readonly IAssemblyListProvider _assembliesListProvider;
+		private readonly static Dictionary<Type, Type> _cachedHandlers = new Dictionary<Type, Type>();
 
-		public CommandHandlerFinder( IServiceLocator serviceLocator, IAssemblyListProvider assembliesListProvider )
+		public CommandHandlerFinder( IAssemblyListProvider assembliesListProvider )
 		{
-			_serviceLocator = serviceLocator;
 			_assembliesListProvider = assembliesListProvider;
 		}
 
-		public ICommandHandler<TCommand> FindHandlerForCommand<TCommand>()
-		{
-			ICommandHandler<TCommand> result = default( ICommandHandler<TCommand> );
+		public Type FindHandlerForCommand<TCommand,TCommandResult>() 
+			where TCommand : ICommand<TCommandResult> 
+			where TCommandResult : CommandResult => GetHandler<ICommandHandler<TCommand,TCommandResult>>(  );
 
-			var commandType = typeof( TCommand );
-			var handlerInheritingFromType = typeof( ICommandHandler<> ).MakeGenericType( commandType );
+		private Type GetHandler<THandler>()
+		{
+			if ( _cachedHandlers.ContainsKey( typeof( THandler ) ) )
+				return _cachedHandlers[ typeof( THandler ) ];
+
+			var handlerInheritingFromType = typeof(THandler);
 
 			var commandHandlerType = GetCommandHandlerType( handlerInheritingFromType );
+
 			if ( commandHandlerType != null )
-				result = _serviceLocator.GetInstance( commandHandlerType ) as ICommandHandler<TCommand>;
-
-			return result;
-		}
-
-		private Type GetCommandHandlerType( Type handlerInheritingFromType )
-		{
-			var commandHandlerType = _assembliesListProvider
-				.GetAssemblies()
-				.SelectMany( x => x.GetTypes() )
-				.SingleOrDefault( x => x.GetInterfaces().Any( y => y == handlerInheritingFromType ) );
+				_cachedHandlers[ typeof( THandler ) ] = commandHandlerType;
 
 			return commandHandlerType;
+		}
+
+		public static void ClearCache()
+		{
+			_cachedHandlers.Clear();
+		}
+
+		public Type FindAsyncHandlerForCommand<TCommand, TCommandResult>()
+			where TCommand : ICommand<TCommandResult>
+			where TCommandResult : CommandResult => GetHandler<IAsyncCommandHandler<TCommand,TCommandResult>>( );
+
+		private Type GetCommandHandlerType( Type handler )
+		{ 
+			return _assembliesListProvider
+				.GetAssemblies().SelectMany( x => x.DefinedTypes )
+				.SingleOrDefault( x => x.GetTypeInfo().ImplementedInterfaces.Any( y => y == handler ) );
 		}
 	}
 }

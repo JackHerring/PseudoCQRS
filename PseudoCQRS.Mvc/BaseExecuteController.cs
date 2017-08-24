@@ -1,63 +1,65 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+#if !MVC5
+using Microsoft.AspNetCore.Mvc;
+
+#elif MVC5
 using System.Web.Mvc;
-using Microsoft.Practices.ServiceLocation;
+using IActionResult = System.Web.Mvc.ActionResult;
+#endif
 
 namespace PseudoCQRS.Controllers
 {
-	public abstract class BaseExecuteController<TViewModel, TCommand> : BaseCommandController<TViewModel, TCommand> where TViewModel : class
+	public abstract class BaseExecuteController<TViewModel, TCommand> : BaseExecuteController<TViewModel, TCommand, CommandResult>
+		where TViewModel : class
+		where TCommand : ICommand<CommandResult>
 	{
-		private readonly IMessageManager _messageManager;
-		private readonly IReferrerProvider _referrerProvider;
+	}
 
-		protected BaseExecuteController(
-			ICommandExecutor commandExecutor,
-			IMessageManager messageManager,
-			IReferrerProvider referrerProvider )
-			: base( commandExecutor )
+	public abstract class BaseExecuteController<TViewModel, TCommand, TCommandResult> : BaseCommandController<TViewModel, TCommand, TCommandResult>
+		where TViewModel : class
+		where TCommand : ICommand<TCommandResult>
+		where TCommandResult : CommandResult, new()
+	{
+		private IMessageManager _messageManager => ControllerDependencyResolver.GetControllerDependency<IMessageManager>( this );
+
+		private IReferrerProvider _referrerProvider => ControllerDependencyResolver.GetControllerDependency<IReferrerProvider>( this );
+
+
+		public override ValueTask<IActionResult> OnSuccessfulExecution( TViewModel viewModel, TCommandResult commandResult )
 		{
-			_messageManager = messageManager;
-			_referrerProvider = referrerProvider;
+			return new ValueTask<IActionResult>( Redirect( _referrerProvider.GetAbsoluteUri() ) );
 		}
 
-		protected BaseExecuteController()
-			: this(
-				ServiceLocator.Current.GetInstance<ICommandExecutor>(),
-				ServiceLocator.Current.GetInstance<IMessageManager>(),
-				ServiceLocator.Current.GetInstance<IReferrerProvider>() ) {}
-
-		public override ActionResult OnSuccessfulExecution( TViewModel viewModel, CommandResult commandResult )
+		public override ValueTask<IActionResult> OnFailureExecution( TViewModel viewModel, TCommandResult commandResult )
 		{
-			return Redirect( _referrerProvider.GetAbsoluteUri() );
+			return new ValueTask<IActionResult>( Redirect( _referrerProvider.GetAbsoluteUri() ) );
 		}
 
-		public override ActionResult OnFailureExecution( TViewModel viewModel, CommandResult commandResult )
-		{
-			return Redirect( _referrerProvider.GetAbsoluteUri() );
-		}
-
-		[HttpPost]
-		public virtual ActionResult Execute( TViewModel viewModel )
+		[AcceptVerbs( "POST" )]
+		public virtual async Task<IActionResult> Execute( TViewModel viewModel )
 		{
 			if ( !ModelState.IsValid )
 			{
 				var errorMessage = GetErrorMessage();
 				_messageManager.SetErrorMessage( errorMessage );
-				return OnFailureExecution( viewModel, new CommandResult
+				return await OnFailureExecution( viewModel, new TCommandResult
 				{
 					ContainsError = true,
 					Message = errorMessage
 				} );
 			}
 
-			return ExecuteCommandAndGetActionResult( viewModel );			
+			return await ExecuteCommandAndGetActionResult( viewModel, RequestAbortedCancellationToken );
 		}
 
 		protected virtual string GetErrorMessage()
 		{
 			return String.Join( "\r\n", ModelState
-				                            .Where( x => x.Value.Errors.Count > 0 )
-				                            .Select( x => String.Join( "\r\n", x.Value.Errors.Select( y => String.IsNullOrEmpty( y.ErrorMessage ) ? y.Exception.ToString() : y.ErrorMessage ) ) ) );
+				.Where( x => x.Value.Errors.Count > 0 )
+				.Select( x => String.Join( "\r\n", x.Value.Errors.Select( y => String.IsNullOrEmpty( y.ErrorMessage ) ? y.Exception.ToString() : y.ErrorMessage ) ) ) );
 		}
 	}
 }

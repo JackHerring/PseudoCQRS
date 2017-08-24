@@ -1,4 +1,7 @@
-﻿namespace PseudoCQRS.Controllers
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace PseudoCQRS.Controllers
 {
 	public class CommandExecutor : ICommandExecutor
 	{
@@ -13,9 +16,10 @@
 			_messageManager = messageManager;
 		}
 
-		public CommandResult ExecuteCommand<TCommand>( TCommand command )
+		public async Task<TCommandResult> ExecuteCommandAsync<TCommand, TCommandResult>( TCommand command, CancellationToken cancellationToken = default(CancellationToken)) 
+			where TCommand : ICommand<TCommandResult> where TCommandResult : CommandResult, new()
 		{
-			var result = _commandBus.Execute( command );
+			var result = await _commandBus.ExecuteAsync( command, cancellationToken);
 			if ( result.ContainsError )
 				_messageManager.SetErrorMessage( result.Message );
 			else

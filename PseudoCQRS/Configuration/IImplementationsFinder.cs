@@ -5,7 +5,7 @@ using System.Text;
 
 namespace PseudoCQRS.Configuration
 {
-	internal interface IImplementationsFinder
+	public interface IImplementationsFinder
 	{
 		Dictionary<Type, Type> FindImplementations();
 	}

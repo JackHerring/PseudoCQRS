@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.Practices.ServiceLocation;
+using System.Reflection;
 
 namespace PseudoCQRS.PropertyValueProviders
 {
 	public class FormDataPropertyValueProvider : BasePropertyValueProvider, IPropertyValueProvider
 	{
 		private readonly IHttpContextWrapper _httpContextWrapper;
-
-		public FormDataPropertyValueProvider()
-			: this( ServiceLocator.Current.GetInstance<IHttpContextWrapper>() ) {}
 
 		public FormDataPropertyValueProvider( IHttpContextWrapper httpContextWrapper )
 		{
@@ -42,12 +39,12 @@ namespace PseudoCQRS.PropertyValueProviders
 
 		private bool PropertyIsListAndValueIsNull( Type propertyType, object value )
 		{
-			return propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof( List<> ) && value == null;
+			return propertyType.GetTypeInfo().IsGenericType && propertyType.GetGenericTypeDefinition() == typeof( List<> ) && value == null;
 		}
 
 		private IList GetEmptyListProperty( Type propertyType )
 		{
-			var containedType = propertyType.GetGenericArguments()[ 0 ];
+			var containedType = propertyType.GenericTypeArguments[ 0 ];
 			var emptyList = (IList)Activator.CreateInstance( ( typeof( List<> ).MakeGenericType( containedType ) ) );
 			return emptyList;
 		}

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Practices.ServiceLocation;
 
 namespace PseudoCQRS.Configuration
 {
-	public class DependencyInjectionServiceLocator : ServiceLocatorImplBase
+	public class DependencyInjectionServiceLocator : IServiceProvider
 	{
 		private readonly IDependencyInjectionContainer _container;
 
@@ -13,14 +12,9 @@ namespace PseudoCQRS.Configuration
 			_container = container;
 		}
 
-		protected override object DoGetInstance( Type serviceType, string key )
+		public object GetService( Type serviceType )
 		{
-			return _container.Resolve( serviceType );
-		}
-
-		protected override IEnumerable<object> DoGetAllInstances( Type serviceType )
-		{
-			return new object[] { _container.Resolve( serviceType ) };
+			return _container.Resolve(serviceType);
 		}
 	}
 }
