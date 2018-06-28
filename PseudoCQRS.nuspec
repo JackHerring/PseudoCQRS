@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>PseudoCQRS</id>
-    <version>7.0.4</version>
+    <version>8.0.0</version>
     <title>PseudoCQRS</title>
     <authors>Liquid Thinking</authors>
     <owners>Liquid Thinking</owners>

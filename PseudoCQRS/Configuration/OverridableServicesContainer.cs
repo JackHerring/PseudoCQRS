@@ -81,16 +81,6 @@ namespace PseudoCQRS.Configuration
 			AddOverride<ICommandHandlerProvider, TCommandHandlerProvider>();
 		}
 
-		public void EventPublisher<TEventPublisher>() where TEventPublisher : IEventPublisher
-		{
-			AddOverride<IEventPublisher, TEventPublisher>();
-		}
-
-		public void SubscriptionService<TSubscriptionService>() where TSubscriptionService : ISubscriptionService
-		{
-			AddOverride<ISubscriptionService, TSubscriptionService>();
-		}
-
 		public void ViewModelProviderArgumentsProvider<TViewModelProviderArgumentsProvider>() where TViewModelProviderArgumentsProvider : IViewModelProviderArgumentsProvider
 		{
 			AddOverride<IViewModelProviderArgumentsProvider, TViewModelProviderArgumentsProvider>();

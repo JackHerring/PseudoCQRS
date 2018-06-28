@@ -60,8 +60,6 @@ namespace PseudoCQRS.Configuration
 			SetImplementation( mappings, typeof( ICommandBus ), typeof( CommandBus ) );
 			SetImplementation( mappings, typeof( ICommandHandlerFinder ), typeof( CommandHandlerFinder ) );
 			SetImplementation( mappings, typeof( ICommandHandlerProvider ), typeof( CommandHandlerProvider ) );
-			SetImplementation( mappings, typeof( IEventPublisher ), typeof( EventPublisher ) );
-			SetImplementation( mappings, typeof( ISubscriptionService ), typeof( SubscriptionService ) );
 			SetImplementation( mappings, typeof( IViewModelProviderArgumentsProvider ),
 			                   typeof( ViewModelProviderArgumentsProvider ) );
 
