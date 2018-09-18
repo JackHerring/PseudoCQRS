@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Primitives;
+
 #elif MVC5
 using System.Web;
 using System.Web.Mvc;
@@ -16,48 +17,57 @@ using System.Web.Mvc;
 namespace PseudoCQRS.Mvc
 {
 #if !MVC5
-public class HttpContextWrapper : IHttpContextWrapper
+	public class HttpContextWrapper : IHttpContextWrapper
 	{
 		private readonly IHttpContextAccessor _httpContextAccessor;
 		private HttpContext Context => _httpContextAccessor.HttpContext;
 
-		public HttpContextWrapper(IHttpContextAccessor httpContextAccessor )
+		public HttpContextWrapper( IHttpContextAccessor httpContextAccessor )
 		{
 			_httpContextAccessor = httpContextAccessor;
 		}
 
-		public string GetUrlReferrerAbsoluteUri() => Context.Request.Headers["Referer"].ToString();
+		public string GetUrlReferrerAbsoluteUri() => Context.Request.Headers[ "Referer" ].ToString();
 
 
-		public bool ContainsSessionItem(string key) => Context.Session.Keys.Contains( key );
+		public bool ContainsSessionItem( string key ) => Context.Session.Keys.Contains( key );
 
-		public string GetQueryStringItem(string key) => Context.Request.Query[ key ];
+		public string GetQueryStringItem( string key ) => Context.Request.Query[ key ];
 
-		public bool ContainsQueryStringItem(string key) => GetQueryStringItem( key ) != null;
+		public bool ContainsQueryStringItem( string key ) => GetQueryStringItem( key ) != null;
 
-		public void SetSessionItem(string key, string value) => Context?.Session.SetString( key, value );
+		public void SetSessionItem( string key, string value ) => Context?.Session.SetString( key, value );
 
-		public string GetSessionItem(string key) => Context.Session.GetString( key );
+		public string GetSessionItem( string key ) => Context.Session.GetString( key );
 
-		public void SessionRemoveItem(string key) => Context.Session.Remove(key);
+		public void SessionRemoveItem( string key ) => Context.Session.Remove( key );
 
-		public bool RequestContainsCookie(string cookieName) => RequestGetCookieValue( cookieName ) != null;
+		public bool RequestContainsCookie( string cookieName ) => RequestGetCookieValue( cookieName ) != null;
 
-		public string RequestGetCookieValue(string cookieName) => Context.Request.Cookies[ cookieName ];
+		public string RequestGetCookieValue( string cookieName ) => Context.Request.Cookies[ cookieName ];
 
-		public void ResponseSetCookie(string name, string value) => Context.Response.Cookies.Append( name, value );
+		public void ResponseSetCookie( string name, string value ) => Context.Response.Cookies.Append( name, value );
 
-		public bool ContainsFormItem(string key) => GetFormItem( key ) != null;
+		public bool ContainsFormItem( string key )
+		{
+			var isFormRequest = Context
+				                    .Request
+				                    .ContentType
+				                    ?.ToLower()
+				                    .Contains( "form" ) ?? false;
 
-		public string GetFormItem(string key)
+			return isFormRequest && !string.IsNullOrEmpty( GetFormItem( key ) );
+		}
+
+		public string GetFormItem( string key )
 		{
 			Context.Request.Form.TryGetValue( key, out StringValues formItem );
 			return formItem;
 		}
 
-		public bool ContainsRouteDataItem(string key) => Context.Request.HttpContext.GetRouteData().Values.ContainsKey( key );
+		public bool ContainsRouteDataItem( string key ) => Context.Request.HttpContext.GetRouteData().Values.ContainsKey( key );
 
-		public object GetRouteDataItem(string key)
+		public object GetRouteDataItem( string key )
 		{
 			Context.Request.HttpContext.GetRouteData().Values.TryGetValue( key, out object value );
 			return value;
